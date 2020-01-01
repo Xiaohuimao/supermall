@@ -120,7 +120,7 @@
   import NavBar from 'components/common/navbar/NavBar.vue'
   import TabControl from 'components/content/tabControl/TabControl.vue'
   // js代码（方法）导入
-  import {getHomeMultidata} from 'network/home.js'
+  import {getHomeMultidata,getHomeGoods} from 'network/home.js'
 
 
   export default {
@@ -138,21 +138,43 @@
         recommends: [],
         goods: {
           'pop': {page: 0, list: []},
-          'news': {page: 0, list: []},
+          'new': {page: 0, list: []},
           'sell': {page: 0, list: []},
         }
       }
     },
+    // created中最好只留业务相关的东西，所以这里再methods中再进行封装
     created() {
       // 1,请求多个数据
       // 函数调用 -> 压入函数栈（保存函数调用过程中所有变量）
       // 函数调用结束 -> 弹出函数栈（释放函数所有的变量）
-      getHomeMultidata().then((res) => {
-        // this.result = res
-        console.log(res)
-        this.banners = res.data.banner.list
-        this.recommends = res.data.recommend.list
-      })
+      // 请求banner数据
+      this.getHomeMultidata()
+      // 请求商品数据
+      this.getHomeGoods('pop')
+      this.getHomeGoods('new')
+      this.getHomeGoods('sell')
+    },
+    methods: {
+      getHomeMultidata() {
+        getHomeMultidata().then((res) => {
+          // this.result = res
+          // console.log(res)
+          this.banners = res.data.banner.list
+          this.recommends = res.data.recommend.list
+        })
+      },
+      getHomeGoods(type) {
+        const page = this.goods[type].page + 1
+        getHomeGoods(type,page).then(res => {
+          // console.log(res)
+          // for (let n of res) {
+          //   this.goods.pop.list.push(n)
+          // }
+          this.goods[type].list.push(...res.data.list)
+          this.goods[type].page += 1
+        })
+      }
     }
   }
 </script>
