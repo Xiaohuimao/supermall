@@ -1,8 +1,9 @@
 <template>
   <div class="tab-control">
+    <!-- 在2.2+版本里，当组件中使用v-for时key是必须的 -->
     <div v-for="(item,index) in titles"
       class="tab-control-item"
-      :class="{active: index === currentIndex}" @click="itemClick(index)">
+      :class="{active: index === currentIndex}" @click="itemClick(index)" :key="item">
       <span>{{item}}</span>
     </div>
   </div>
@@ -27,6 +28,7 @@
     methods: {
       itemClick(index) {
         this.currentIndex = index;
+        this.$emit('tabClick', index);
       }
     }
   }
