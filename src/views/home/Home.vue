@@ -1,12 +1,22 @@
 <template>
   <div id="home">
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
-    <home-swiper :banners="banners"/>
-    <recommend-view :recommends="recommends"/>
-    <feature-view />
-    <tab-control class="tab-control" 
-      :titles="['流行','新款','精选']" @tabClick = "tabClick"/>
-    <goods-list :goods="showGoods" />
+    <scroll class="content" 
+    ref="scroll" 
+    :probe-type="3" 
+    @scroll="contentScroll" 
+    :pull-up-load = "true"
+    @pullingUp = "loadMore"
+    >
+      <home-swiper :banners="banners"/>
+      <recommend-view :recommends="recommends"/>
+      <feature-view />
+      <tab-control class="tab-control" 
+        :titles="['流行','新款','精选']" @tabClick = "tabClick"/>
+      <goods-list :goods="showGoods" />
+    </scroll>
+    <!-- 组件不能直接监听点击，如果要监听，需要在事件名后加.native -->
+    <back-top @click.native="backClick" v-show = "isShowBackTop"/>
   </div>
 </template>
 
@@ -20,6 +30,7 @@
   import TabControl from 'components/content/tabControl/TabControl.vue'
   import GoodsList from 'components/content/goods/GoodsList.vue'
   import Scroll from 'components/common/scroll/Scroll.vue'
+  import BackTop from 'components/content/backTop/BackTop'
   // js代码（方法）导入
   import {getHomeMultidata,getHomeGoods} from 'network/home.js'
 
@@ -34,6 +45,7 @@
       TabControl,
       GoodsList,
       Scroll,
+      BackTop,
     },
     data() {
       return {
@@ -44,7 +56,8 @@
           'new': {page: 0, list: []},
           'sell': {page: 0, list: []},
         },
-        currentType: 'pop'
+        currentType: 'pop',
+        isShowBackTop: false,
       }
     },
     computed: {
@@ -82,6 +95,15 @@
             break
         }
       },
+      backClick() {
+        this.$refs.scroll.scrollTo(0,0,500)
+      },
+      contentScroll(position) {
+        this.isShowBackTop = (-position.y) > 1000
+      },
+      loadMore() {
+        this.getHomeGoods(this.currentType)
+      },
 
       /*
       网络监听相关的方法
@@ -103,15 +125,21 @@
           // }
           this.goods[type].list.push(...res.data.list)
           this.goods[type].page += 1
+
+          this.$refs.scroll.finishPullUp()
         })
       }
     }
   }
 </script>
 
-<style>
+
+<style scoped>
+/* scoped为作用域，设置了scoped后，则样式只对当前页面元素起作用 */
   #home {
-    padding-top: 43px;
+    padding-top: 44px;
+    height: 100vh;
+    position: relative;
   }
 
   .home-nav {
@@ -129,4 +157,20 @@
     top: 44px;
     z-index: 9;
   }
+  .content {
+    /* height: 300px; */
+    overflow: hidden;
+
+    position: absolute;
+    top: 44px;
+    bottom: 49px;
+    left: 0;
+    right: 0;
+  }
+  /* .content {
+    css3中的属性calc可设置相对父元素的百分比高度 
+    height: calc(100% - 93px);
+    overflow: hidden;
+    margin-top: 44px;
+  } */
 </style>
