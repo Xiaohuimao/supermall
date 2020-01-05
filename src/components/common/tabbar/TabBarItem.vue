@@ -39,6 +39,7 @@
       itemClick() {
         this.$router.replace(this.path)
         // console.log(this.path);
+        document.title = this.$route.meta.title
       }
     }
   }

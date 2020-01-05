@@ -1,6 +1,7 @@
 <template>
-  <div class="goods-item">
-    <img :src="goodsItem.show.img" alt="">
+  <div class="goods-item" @click="itemClick">
+    <!-- vue中监听是否加载完成load方法 -->
+    <img :src="goodsItem.show.img" alt="" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
@@ -18,6 +19,15 @@ export default {
       default() {
         return {}
       }
+    }
+  },
+  methods: {
+    imageLoad() {
+      // 发射一个事件到事件总线
+      this.$bus.$emit('itemImageLoad')
+    },
+    itemClick() {
+        this.$router.push('/detail/' + this.goodsItem.iid)
     }
   }
 }

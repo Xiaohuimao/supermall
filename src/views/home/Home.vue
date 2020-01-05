@@ -1,18 +1,22 @@
 <template>
   <div id="home">
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
+    <tab-control class="tab-control" 
+        :titles="['流行','新款','精选']" 
+        @tabClick = "tabClick"
+        ref="tabControl1" v-show="isTabFixed"/>
     <scroll class="content" 
     ref="scroll" 
     :probe-type="3" 
     @scroll="contentScroll" 
-    :pull-up-load = "true"
-    @pullingUp = "loadMore"
-    >
-      <home-swiper :banners="banners"/>
+    :pull-up-load = "true" 
+    @pullingUp = "loadMore">
+      <home-swiper :banners="banners" @swiperImageLoad = "swiperImageLoad"/>
       <recommend-view :recommends="recommends"/>
       <feature-view />
-      <tab-control class="tab-control" 
-        :titles="['流行','新款','精选']" @tabClick = "tabClick"/>
+      <tab-control :titles="['流行','新款','精选']" 
+        @tabClick = "tabClick"
+        ref="tabControl2" />
       <goods-list :goods="showGoods" />
     </scroll>
     <!-- 组件不能直接监听点击，如果要监听，需要在事件名后加.native -->
@@ -33,6 +37,7 @@
   import BackTop from 'components/content/backTop/BackTop'
   // js代码（方法）导入
   import {getHomeMultidata,getHomeGoods} from 'network/home.js'
+  import {debounce} from 'common/utils.js'
 
 
   export default {
@@ -58,12 +63,23 @@
         },
         currentType: 'pop',
         isShowBackTop: false,
+        tabOffsetTop: 0,
+        isTabFixed: false,
+        saveY: 0
       }
     },
     computed: {
       showGoods() {
         return this.goods[this.currentType].list
       }
+    },
+    // 活跃非活跃，只有使用keep-alive时才出现
+    activated() {
+      this.$refs.scroll.scrollTo(0,this.saveY,0)
+      this.$refs.scroll.refresh()
+    },
+    deactivated() {
+      this.saveY = this.$refs.scroll.getScrollY()
     },
     // created中最好只留业务相关的东西，所以这里再methods中再进行封装
     created() {
@@ -72,13 +88,23 @@
       // 函数调用结束 -> 弹出函数栈（释放函数所有的变量）
       // 请求banner数据
       this.getHomeMultidata()
-      // 请求商品数据
+      // 2，请求商品数据
       this.getHomeGoods('pop')
       this.getHomeGoods('new')
       this.getHomeGoods('sell')
+
+      
     },
-    methods: {
-      /*
+    mounted() {
+      // 1, 图片加载完成的事件监听
+      const refresh = debounce(this.$refs.scroll.refresh,100)
+      // 监听item中图片加载完成(这是使用事件总线监听GoodsListltem发射的事件)
+        this.$bus.$on('itemImageLoad',() => {
+          refresh()
+      }) 
+    },
+    methods: { 
+     /*
       事件监听相关的方法
       */ 
       tabClick(index) {
@@ -94,15 +120,26 @@
             this.currentType = 'sell'
             break
         }
+        this.$refs.tabControl1.currentIndex = index;
+        this.$refs.tabControl2.currentIndex = index;
       },
       backClick() {
         this.$refs.scroll.scrollTo(0,0,500)
       },
       contentScroll(position) {
+        // 1,判断BackTop是否显示
         this.isShowBackTop = (-position.y) > 1000
+        
+        // 决定tabControl是否吸顶（position： fixed）
+        this.isTabFixed = (-position.y) > this.tabOffsetTop
       },
       loadMore() {
         this.getHomeGoods(this.currentType)
+      },
+      // 2，赋值(所有组件都有一个属性$el，用来获取组件中的元素)
+      // this.tabOffsetTop = this.$refs.tabControl.offsetTop
+      swiperImageLoad() {
+        this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop;
       },
 
       /*
@@ -137,7 +174,7 @@
 <style scoped>
 /* scoped为作用域，设置了scoped后，则样式只对当前页面元素起作用 */
   #home {
-    padding-top: 44px;
+    /* padding-top: 44px; */
     height: 100vh;
     position: relative;
   }
@@ -145,18 +182,14 @@
   .home-nav {
     background: var(--color-tint);
     color: #FFFFFF;
-    position: fixed;
+    /* 在使用原生滚动时，为了不让导航不跟随一起滚动 */
+    /* position: fixed;
     left: 0;
     right: 0;
     top: 0;
-    z-index: 9;
+    z-index: 9; */
   }
-  .tab-control {
-    /* 简单实现吸顶功能 */
-    position: sticky;
-    top: 44px;
-    z-index: 9;
-  }
+
   .content {
     /* height: 300px; */
     overflow: hidden;
@@ -173,4 +206,8 @@
     overflow: hidden;
     margin-top: 44px;
   } */
+  .tab-control {
+    position: relative;
+    z-index: 9;
+  }
 </style>

@@ -43,22 +43,35 @@ export default {
     })
 
     // 监听滚动的位置
-    this.scroll.on('scroll',(position) => {
+    if (this.probeType === 2 || this.probeType ===3) {
+      this.scroll.on('scroll',(position) => {
       // 这里子传父，使用自定义事件
       this.$emit('scroll', position)
     })
-
+    }
+    
     // 监听上拉加载更多
-    this.scroll.on('pullingUp',() => {
+    if (this.pullUpLoad) {
+      this.scroll.on('pullingUp',() => {
       this.$emit('pullingUp');
     })
+    }
   },
   methods: {
     scrollTo(x,y,time) {
-      this.scroll.scrollTo(x,y,time)
+      this.scroll && this.scroll.scrollTo(x,y,time)
     },
+    // 完成上拉加载更多
     finishPullUp() {
-      this.scroll.finishPullUp()
+      this.scroll && this.scroll.finishPullUp()
+    },
+    refresh() {
+      // 与，判断，如果this.scroll还不存在，就不调用后面的内容
+      // （这里防止Home中调用refresh的时候，this.scroll还没有值而造成报错）
+      this.scroll && this.scroll.refresh()
+    },
+    getScrollY() {
+      return this.scroll ? this.scroll.y : 0
     }
   }
 }
