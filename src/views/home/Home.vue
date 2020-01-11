@@ -37,7 +37,8 @@
   import BackTop from 'components/content/backTop/BackTop'
   // js代码（方法）导入
   import {getHomeMultidata,getHomeGoods} from 'network/home.js'
-  import {debounce} from 'common/utils.js'
+  import {itemListenerMixin} from 'common/mixin.js'
+
 
 
   export default {
@@ -52,6 +53,7 @@
       Scroll,
       BackTop,
     },
+    mixins: [itemListenerMixin],
     data() {
       return {
         banners: [],
@@ -65,7 +67,7 @@
         isShowBackTop: false,
         tabOffsetTop: 0,
         isTabFixed: false,
-        saveY: 0
+        saveY: 0,
       }
     },
     computed: {
@@ -79,7 +81,11 @@
       this.$refs.scroll.refresh()
     },
     deactivated() {
+      // 1，保存Y值
       this.saveY = this.$refs.scroll.getScrollY()
+
+      // 2，取消全局事件的监听
+      this.$bus.$off('itemImgLoad',this.itemImgListener)
     },
     // created中最好只留业务相关的东西，所以这里再methods中再进行封装
     created() {
@@ -92,16 +98,8 @@
       this.getHomeGoods('pop')
       this.getHomeGoods('new')
       this.getHomeGoods('sell')
-
-      
     },
     mounted() {
-      // 1, 图片加载完成的事件监听
-      const refresh = debounce(this.$refs.scroll.refresh,100)
-      // 监听item中图片加载完成(这是使用事件总线监听GoodsListltem发射的事件)
-        this.$bus.$on('itemImageLoad',() => {
-          refresh()
-      }) 
     },
     methods: { 
      /*
@@ -148,7 +146,6 @@
       getHomeMultidata() {
         getHomeMultidata().then((res) => {
           // this.result = res
-          // console.log(res)
           this.banners = res.data.banner.list
           this.recommends = res.data.recommend.list
         })

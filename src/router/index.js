@@ -45,14 +45,22 @@ const routes = [
  },
  {
    path: '/detail/:iid',
-   component: Detail
+   component: Detail,
+   meta: {
+     title: '详情'
+   }
  }
 ]
+
+
+
+
 
 // 2,创建router
 const router = new VueRouter({
     routes,
     mode:'history'
 })
+
 
 export default router
