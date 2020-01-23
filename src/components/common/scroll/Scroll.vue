@@ -1,7 +1,7 @@
 <template>
   <!-- ref/children父组件获取子组件的时候可以使用 -->
   <div class="wrapper" ref="wrapper">
-    <div class="content">
+    <div>
       <slot></slot>
     </div>
   </div>

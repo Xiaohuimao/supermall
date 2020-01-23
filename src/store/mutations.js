@@ -19,6 +19,7 @@ export default {
       payload.count++
     },
     [ADD_TO_CART](state,payload) {
+      payload.checked = true
       state.cartList.push(payload)
     }
   }
