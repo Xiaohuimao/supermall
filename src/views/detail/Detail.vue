@@ -15,6 +15,7 @@
     </scroll>
     <detail-bottom-bar @addCart="addToCart"/>
     <back-top @click.native="backClick" v-show = "isShowBackTop"/>
+    <!-- <toast :message="message" :show="show"></toast> -->
   </div>
 </template>
 
@@ -30,11 +31,14 @@ import DetailBottomBar from './childComps/DetailBottomBar'
 
 import Scroll from 'components/common/scroll/Scroll.vue'
 import GoodsList from 'components/content/goods/GoodsList.vue'
+// import Toast from 'components/common/toast/Toast.vue'
 
 
 import {getDetail,Goods,Shop,GoodsParam,getRecommend} from 'network/detail.js'
 import {debounce} from 'common/utils'
 import {itemListenerMixin,backTopMixin} from 'common/mixin.js'
+
+import { mapActions } from 'vuex'
 
 export default {
   name: "Detail",
@@ -49,6 +53,7 @@ export default {
     DetailCommentInfo,
     GoodsList,
     DetailBottomBar,
+    // Toast,
   },
   mixins: [itemListenerMixin,backTopMixin],
   data() {
@@ -64,6 +69,8 @@ export default {
       themeTopYs: [],
       getThemeTopY: null,
       currentIndex: 0,
+      // message: '',
+      // show: false,
     }
   },
   created() {
@@ -137,6 +144,8 @@ export default {
     this.$bus.$off('itemImgLoad',this.itemImgListener)
   },
   methods: {
+    // 除getters中的方法可以映射外，actions中的方法也可以映射
+    ...mapActions(['addCart']),
     // 这里通过mixin（混入）的方式，来取到防抖函数，进行优化
     detailImageLoad() {
       this.newRefresh()
@@ -183,7 +192,22 @@ export default {
       // 2,将商品添加到购物车
       // this.$store.cartList.push(product)
       // this.$store.commit('addCart',product)
-      this.$store.dispatch('addCart',product)
+      // this.$store.dispatch('addCart',product).then(res => {
+      //   console.log(res)
+      // })
+      this.addCart(product).then(res => {
+        // this.show = true;
+        // this.message = res;
+        // console.log(res);
+
+        // setTimeout(() => {
+        //   this.show = false;
+        //   this.message = '';
+        // },1500)
+        this.$toast.show(res,2000)
+        console.log(res)
+
+      })
     }
     }
   }

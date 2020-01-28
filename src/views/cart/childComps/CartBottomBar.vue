@@ -1,14 +1,14 @@
 <template>
   <div class="bottom-bar">
     <div class="check-content">
-      <check-button class="check-button"></check-button>
+      <check-button class="check-button" :is-checked="isSelectAll" @click.native="checkClick"></check-button>
       <span>全选</span>
     </div>
     <div class="price">
       合计:￥{{totalPrice}}
     </div>
 
-    <div class="calculate">
+    <div class="calculate" @click="calcClick">
       去计算({{checkLangth}})
     </div>
   </div>
@@ -22,6 +22,7 @@ export default {
   components: {
     CheckButton,
   },
+
   computed: {
     ...mapGetters(['cartList']),
     totalPrice() {
@@ -33,6 +34,39 @@ export default {
     },
     checkLangth() {
       return this.cartList.filter(item => item.checked).length
+    },
+    isSelectAll() {
+      // 数字取反可以返回布尔值
+      // 1,使用filter
+      // return !(this.cartList.filter(item => !item.checked).length)
+
+      // 2，使用find（对象取反也可变为布尔值）
+      if (this.cartList.length === 0) return false
+      // return !this.cartList.find(item => !item.checked)
+
+      // console.log(!this.cartList.find(item => !item.checked))
+
+      // 3，普通遍历
+      for (let item of this.cartList) {
+        if (!item.checked) {
+          return false
+        }
+      }
+      return true
+    }
+  },
+  methods: {
+    checkClick() {
+      if (this.isSelectAll)  { // 全部选中
+        this.cartList.forEach(item => item.checked = false)
+      } else { // 部分或全部不选中
+        this.cartList.forEach(item => item.checked = true)
+      }
+    },
+    calcClick() {
+      if (!this.checkLangth) {
+        this.$toast.show('请选择购买的商品',2000)
+      }
     }
   }
 }
