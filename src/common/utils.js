@@ -10,6 +10,7 @@ export function debounce(func,delay) {
   }
 }
 
+// 年份格式化函数
 export function formatDate(date, fmt) {
   // 1，获取年份
   if (/(y+)/.test(fmt)) {
@@ -36,3 +37,23 @@ export function formatDate(date, fmt) {
 function padLeftZero (str) {
   return ('00' + str).substr(str.length);
 };
+
+// 四舍五入取两位小数
+export function getFloattwo(x){
+  if (x != '.'){
+    var f = Math.round(x * 100) / 100;
+    var s = f.toString();
+    var rs = s.indexOf('.');
+    if (rs <= 0) {
+      rs = s.length;
+      s += '.';
+    }
+    while (s.length <= rs + 2) {
+      s += '0';
+    }
+    return s;
+  }else{
+    return '0.00';
+  }
+}
+
